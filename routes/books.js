@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const protect = require('../middleware/protect');
 const {
     getAllBooks,
     getBookById,
@@ -38,7 +39,7 @@ const {
  *         schema: { type: boolean }
  *     responses:
  *       200:
- *         description: A paginated list of books with populated author details
+ *         description: A paginated list of books
  */
 router.get('/', getAllBooks);
 
@@ -55,7 +56,7 @@ router.get('/', getAllBooks);
  *         schema: { type: string }
  *     responses:
  *       200:
- *         description: Book object with populated author
+ *         description: Book object
  *       404:
  *         description: Book not found
  */
@@ -67,6 +68,8 @@ router.get('/:id', getBookById);
  *   post:
  *     summary: Create a new book
  *     tags: [Books]
+ *     security:
+ *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -76,29 +79,23 @@ router.get('/:id', getBookById);
  *             required: [title, author, isbn, genre, publishedYear, pageCount, summary]
  *             properties:
  *               title: { type: string, example: "Nineteen Eighty-Four" }
- *               author: { type: string, example: "64a1b2c3d4e5f6789abcdef0" }
+ *               author: { type: string, example: "6a1744c5650ac7f4d9ebc32c" }
  *               isbn: { type: string, example: "9780451524935" }
- *               genre:
- *                 type: string
- *                 enum: [Fiction, Non-Fiction, Science Fiction, Fantasy, Mystery, Biography, History, Self-Help, Horror, Romance, Other]
- *                 example: Fiction
+ *               genre: { type: string, enum: [Fiction, Non-Fiction, Science Fiction, Fantasy, Mystery, Biography, History, Self-Help, Horror, Romance, Other] }
  *               publishedYear: { type: integer, example: 1949 }
  *               language: { type: string, example: "English" }
  *               pageCount: { type: integer, example: 328 }
- *               summary: { type: string, example: "A dystopian novel set in a totalitarian society..." }
- *               coverImageUrl: { type: string, example: "https://example.com/covers/1984.jpg" }
+ *               summary: { type: string, example: "A dystopian novel..." }
  *               rating: { type: number, minimum: 0, maximum: 5, example: 4.8 }
  *     responses:
  *       201:
  *         description: Book created
+ *       401:
+ *         description: Unauthorized — login required
  *       400:
  *         description: Validation error
- *       404:
- *         description: Author not found
- *       409:
- *         description: ISBN already exists
  */
-router.post('/', createBook);
+router.post('/', protect, createBook);
 
 /**
  * @swagger
@@ -106,6 +103,8 @@ router.post('/', createBook);
  *   put:
  *     summary: Update an existing book
  *     tags: [Books]
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -124,12 +123,12 @@ router.post('/', createBook);
  *     responses:
  *       200:
  *         description: Book updated
- *       400:
- *         description: Validation error
+ *       401:
+ *         description: Unauthorized — login required
  *       404:
  *         description: Book not found
  */
-router.put('/:id', updateBook);
+router.put('/:id', protect, updateBook);
 
 /**
  * @swagger
@@ -137,6 +136,8 @@ router.put('/:id', updateBook);
  *   delete:
  *     summary: Delete a book
  *     tags: [Books]
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -145,9 +146,11 @@ router.put('/:id', updateBook);
  *     responses:
  *       200:
  *         description: Book deleted
+ *       401:
+ *         description: Unauthorized — login required
  *       404:
  *         description: Book not found
  */
-router.delete('/:id', deleteBook);
+router.delete('/:id', protect, deleteBook);
 
 module.exports = router;
